@@ -367,8 +367,6 @@ soft-404/wildcard e disciplina de saída é herdado destes dois projetos:
   Enumeração ativa em KOF: um binário, seis modos, zero exploração.
   É a origem do módulo `active/`. Licença GPL-3.0.
 
-```
-
 Fidelidade aos originais: mesmas flags, mesma semântica de filtros, mesma
 detecção de soft-404/wildcard, mesma disciplina de saída (dados no stdout,
 diagnóstico no stderr) e os mesmos códigos de saída.
