@@ -49,7 +49,7 @@ def run_store_mode(cfg, log, emitter, mode_name):
             if state == "absent":
                 continue
             found += 1
-            progress.tick(found_hit=True)
+            progress.found_one()
             emitter.emit({
                 "type": mode_name, "bucket": bucket, "url": url,
                 "status": status, "state": state,

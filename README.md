@@ -6,7 +6,7 @@
 |  _ \   | |  | |     | | | |   / /   | |  | |\/| |
 | |_) |  | |  | |___  | |_| |  / /_   | |  | |  | |
 |____/  |___| |_____|  \___/  /____| |___| |_|  |_|
-Recon passivo + enumeracao ativa   v0.2.0
+Recon passivo + enumeracao ativa   v0.3.0
 ```
 
 Biluzim é uma ferramenta de reconhecimento para terminal com três times: o passivo (subdomínios via fontes OSINT), o ativo (dir, dns, vhost, fuzz, s3/gcs, tftp) e o explorador (crawler que vasculha o site por dentro):
@@ -55,6 +55,7 @@ biluzim --version
 ## Modos
 
 ```
+biluzim                  sem argumentos: MODO WIZARD (alvo 1x, os 3 times em fila)
 biluzim <modo> [opções]
 
 PASSIVOS (nunca tocam no alvo)
@@ -69,6 +70,29 @@ ATIVOS (sondam o alvo, so reportam, nao exploram)
   s3 / gcs             checagem read-only de buckets
   tftp                 checagem de arquivos via TFTP RRQ (so o 1o bloco)
 ```
+
+### `run` — o modo wizard (o maestro)
+
+```bash
+biluzim                       # abre a conversa: alvo 1x e os 3 times em fila
+biluzim run --yes -d alvo.com # scriptado: roda tudo sem perguntar
+biluzim run --yes -d alvo.com --active dir,dns --no-explore
+```
+
+O wizard pergunta o alvo uma vez so e vai comandando os times:
+
+1. **recon passivo** roda e entrega o resumo por fonte;
+2. resolve e sonda os subdominios achados (ponte passivo->ativo);
+3. `Entrar no modo ativo? [s/N]` - executa a fila `dns,dir,vhost,fuzz,s3,gcs,tftp` (ou a lista que voce digitar) nos alvos vivos;
+4. `Rodar o explorador? [s/N]` - o explore entra nos URLs que responderam;
+5. tudo consolida num arquivo so (padrao: `biluzim_<dominio>.txt`; `-f jsonl` para JSONL).
+
+Respostas podem ser pipeadas (EOF = padrao), entao o wizard tambem e scriptavel: `printf 'alvo.com
+
+
+s
+s
+' | biluzim`.
 
 ### `recon` — passivo
 

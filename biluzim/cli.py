@@ -28,7 +28,7 @@ from urllib.parse import urlparse
 from . import __version__
 from .banner import Palette, colors_enabled, print_banner
 from .httpx import HttpClient
-from .util import Log, Emitter, parse_domain, ScopeError
+from .util import Log, Emitter, parse_domain, ScopeError, default_wordlist
 
 DEFAULT_RESOLVER = "https://dns.google/resolve"
 
@@ -56,12 +56,6 @@ def load_config(path=None):
             except json.JSONDecodeError as e:
                 usage_error("biluzim: config JSON invalida (%s): %s" % (c, e))
     return {}
-
-
-def default_wordlist(name):
-    """Wordlist embutida: fica ao lado do pacote biluzim/wordlists/."""
-    here = os.path.dirname(os.path.abspath(__file__))
-    return os.path.join(here, "wordlists", name)
 
 
 class Ctx:
@@ -147,11 +141,36 @@ def add_wordlist(sp, required=False, default=None, help_text="wordlist (arquivo)
 def build_parser():
     ap = argparse.ArgumentParser(
         prog="biluzim",
-        description="Biluzim - reconhecimento passivo + enumeracao ativa (lunatic + koffuster)",
+        description="Biluzim - reconhecimento passivo + enumeracao ativa (lunatic + koffuster). "
+                    "Sem argumentos abre o MODO WIZARD, que encadeia os tres times.",
         epilog="Uso autorizado apenas. Achados sao de ENUMERACAO, nunca vulnerabilidades.",
     )
     ap.add_argument("--version", action="version", version="biluzim " + __version__)
     sub = ap.add_subparsers(dest="mode", metavar="<modo>")
+
+    # ---- run (wizard) ------------------------------------------------------
+    p = sub.add_parser("run", aliases=["wizard"],
+                       help="modo wizard: alvo 1x, recon, e s/n para ativo e explore")
+    p.add_argument("-d", "--domain", default="", metavar="DOMINIO",
+                   help="dominio alvo (pula a pergunta)")
+    p.add_argument("-u", "--url", default="", metavar="URL",
+                   help="URL base (pula a pergunta)")
+    p.add_argument("--yes", action="store_true",
+                   help="roda tudo (recon + fila ativa + explore) sem perguntar")
+    p.add_argument("--active", default="", metavar="LISTA",
+                   help="fila do modo ativo (ex.: dir,dns,vhost); padrao: dns,dir,vhost,s3,gcs,tftp")
+    p.add_argument("--no-explore", action="store_true", help="pula o time explorador")
+    p.add_argument("-S", "--sources", default="", metavar="LISTA",
+                   help="fontes do recon (padrao: gratuitas padrao)")
+    p.add_argument("--all", action="store_true", help="recon com todas as fontes")
+    p.add_argument("--max-pages", type=int, default=10, help="paginas por fonte no recon")
+    p.add_argument("--depth", type=int, default=3, help="profundidade do explore")
+    p.add_argument("--scope", choices=["host", "subdomains"], default="host",
+                   help="escopo do explore (padrao: host)")
+    p.add_argument("--explore-pages", type=int, default=200,
+                   help="orcamento de paginas do explore (padrao: 200)")
+    p.add_argument("--config", default=None, metavar="ARQUIVO", help="config JSON de credenciais")
+    add_common_options(p)
 
     # ---- recon (passivo, lunatic) ---------------------------------------
     p = sub.add_parser("recon", aliases=["passive", "osint"],
@@ -527,10 +546,27 @@ HANDLERS = {
 def main(argv=None):
     ap = build_parser()
     args = ap.parse_args(argv)
-    if not args.mode:
-        ap.print_help(sys.stderr)
-        return 2
     config = load_config(getattr(args, "config", None))
+
+    # sem modo (biluzim puro) ou modo run/wizard: abre o maestro
+    if args.mode in (None, "run", "wizard"):
+        if args.mode is None:
+            from argparse import Namespace
+            args = Namespace(
+                domain="", url="", yes=False, active="", no_explore=False,
+                sources="", all=False, max_pages=10, depth=3, scope="host",
+                explore_pages=200, config=None, output=None, format="text",
+                threads=8, timeout=10.0, retries=1, user_agent=None,
+                cookie=None, auth=None, proxy=None, quiet=False, verbose=False,
+                color=False, no_color=False, mode="run",
+            )
+        from .wizard import run_wizard
+        try:
+            return run_wizard(args, config)
+        except KeyboardInterrupt:
+            sys.stderr.write("\nbiluzim: interrompido; resultados parciais no arquivo\n")
+            return 130
+
     handler = HANDLERS.get(args.mode)
     if handler is None:
         ap.print_help(sys.stderr)

@@ -72,7 +72,7 @@ def run_fuzz_mode(cfg, log, emitter):
             if not hit:
                 continue
             found += 1
-            progress.tick(found_hit=True)
+            progress.found_one()
             emitter.emit({
                 "type": "fuzz", "payload": word, "status": status, "length": length,
                 "url": cfg.url.replace("FUZZ", word),

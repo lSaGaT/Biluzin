@@ -75,7 +75,7 @@ def run_dir_mode(cfg, log, emitter):
             if exclude_length is not None and length in exclude_length:
                 continue
             found += 1
-            progress.tick(found_hit=True)
+            progress.found_one()
             emitter.emit({
                 "type": "dir", "url": url, "status": status,
                 "length": length if length >= 0 else None,

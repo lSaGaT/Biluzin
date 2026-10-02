@@ -73,7 +73,7 @@ def run_vhost_mode(cfg, log, emitter):
             if not hit:
                 continue
             found += 1
-            progress.tick(found_hit=True)
+            progress.found_one()
             emitter.emit({
                 "type": "vhost", "host": host, "status": status,
                 "length": length,

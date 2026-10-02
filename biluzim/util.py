@@ -306,7 +306,7 @@ class Progress:
         if pct >= self._last_pct + 5 or self.done == self.total:
             self._last_pct = pct
             with _log_lock:
-                bar = "#" * int(pct // 5) + "." * (20 - int(pct // 5))
+                bar = "#" * min(int(pct // 5), 20) + "." * max(20 - int(pct // 5), 0)
                 sys.stderr.write(
                     "\r[%s] %s %3d%%  achados=%d" % (self.log.pal.cyan(bar), self.label, pct, self.found)
                 )
@@ -315,6 +315,10 @@ class Progress:
                 with _log_lock:
                     sys.stderr.write("\n")
                     sys.stderr.flush()
+
+    def found_one(self):
+        """Conta um achado sem avancar o progresso (o tick do candidato ja foi dado)."""
+        self.found += 1
 
     def finish(self):
         if self.enabled:
@@ -325,3 +329,8 @@ class Progress:
 
 def json_dumps(obj) -> str:
     return json.dumps(obj, ensure_ascii=False, sort_keys=False)
+
+
+def default_wordlist(name):
+    """Wordlist embutida: fica ao lado do pacote biluzim/wordlists/."""
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), "wordlists", name)

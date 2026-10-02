@@ -119,7 +119,7 @@ def run_tftp_mode(cfg, log, emitter):
                 log.debug("erro: %s -> %s" % (file_name, detail))
                 continue
             found += 1
-            progress.tick(found_hit=True)
+            progress.found_one()
             emitter.emit({
                 "type": "tftp", "host": "%s:%d" % (host, port), "file": file_name,
                 "state": state, "detail": detail,

@@ -101,7 +101,7 @@ def run_dns_mode(cfg, log, emitter):
             if detected and wildcard_ip in ips:
                 continue
             found += 1
-            progress.tick(found_hit=True)
+            progress.found_one()
             emitter.emit({
                 "type": "dns", "subdomain": name, "ips": ips,
                 "line": name + "  [" + ", ".join(ips) + "]",
