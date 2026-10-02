@@ -9,14 +9,7 @@
 Recon passivo + enumeracao ativa   v0.1.0
 ```
 
-Biluzim é uma ferramenta de reconhecimento para terminal que **junta dois
-projetos do [lunalully](https://github.com/lunalully) em um só binário**:
-
-| De onde vem | O que trouxe |
-|---|---|
-| [**lunatic**](https://github.com/lunalully/lunatic) | o modo **`recon`**: descoberta **passiva** de subdomínios consultando ~26 fontes OSINT (Certificate Transparency, arquivos web, DNS passivo, buscadores de ativos). Nunca toca no alvo. |
-| [**koffuster**](https://github.com/lunalully/koffuster) | os modos **`dir`**, **`dns`**, **`vhost`**, **`fuzz`**, **`s3`/`gcs`** e **`tftp`**: enumeração **ativa** — sonda, reporta e **nunca explora**. |
-| **A junção** | a **ponte passivo→ativo**: `biluzim recon -d alvo.com --resolve --probe` descobre subdomínios passivamente, resolve DNS e faz uma sonda HTTP leve em cada um — do zero ao inventário vivo em um comando. |
+Biluzim é uma ferramenta de reconhecimento para terminal:
 
 Escrita em **Python 3 puro (só stdlib)** — nada de `pip install` no Kali.
 Todo achado é reportado como **achado de enumeração**, nunca como
@@ -76,7 +69,7 @@ ATIVOS (sondam o alvo, so reportam, nao exploram)
   tftp                 checagem de arquivos via TFTP RRQ (so o 1o bloco)
 ```
 
-### `recon` — passivo (o lunatic)
+### `recon` — passivo
 
 ```bash
 biluzim recon -d exemplo.com                       # fontes gratuitas padrao
@@ -117,7 +110,7 @@ biluzim dir -u https://www.exemplo.com -w /usr/share/wordlists/dirb/common.txt
 biluzim dns -d exemplo.com -w /usr/share/wordlists/seclists/Discovery/DNS/subdomains-top1million-5000.txt
 ```
 
-### `dir` — força bruta de diretórios (o koffuster)
+### `dir` — força bruta de diretórios
 
 ```bash
 biluzim dir alvo.com words.txt                     # forma posicional (assume https://)
@@ -299,14 +292,6 @@ detecção de soft-404/wildcard, mesma disciplina de saída (dados no stdout,
 diagnóstico no stderr) e os mesmos códigos de saída.
 
 ---
-
-## Licença e crédito
-
-**GPL-3.0-or-later** — a Biluzim deriva do Koffuster (GPLv3); o Lunatic é
-MIT. Todos os créditos de design e dos endpoints de fontes para
-[lunalully](https://github.com/lunalully) e os projetos
-[lunatic](https://github.com/lunalully/lunatic) e
-[koffuster](https://github.com/lunalully/koffuster).
 
 Uso autorizado apenas. O que a Biluzim faz é **enumerar** — ela não
 explora, não ataca e não quebra nada. Continue assim: pente fino, zero
