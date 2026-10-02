@@ -23,12 +23,27 @@ vulnerabilidade.
 
 ## Instalação (Kali / Debian / Ubuntu)
 
-Pré-requisito: **Python 3.9+** (padrão no Kali). Nenhuma biblioteca extra.
+Pré-requisito: **Python 3.9+** e `git` (padrão no Kali). Nenhuma biblioteca extra.
+
+### Atalho direto do GitHub (um comando)
 
 ```bash
-# clone este projeto (ou baixe o ZIP e extraia)
-cd biluzim
-sudo ./install.sh          # instala em /usr/local/bin/biluzim
+curl -sSL https://raw.githubusercontent.com/lSaGaT/Biluzin/main/install.sh | bash
+```
+
+(com `wget`: `wget -qO- https://raw.githubusercontent.com/lSaGaT/Biluzin/main/install.sh | bash`)
+
+O script clona o projeto em `~/.local/share/biluzim`, cria o comando em
+`~/.local/bin/biluzim` e avisa se precisar ajustar o `PATH`. Sem root.
+Para instalar do sistema: `sudo curl -sSL .../install.sh | bash`
+(vai para `/opt/biluzim` + `/usr/local/bin`). Atualizar depois:
+`git -C ~/.local/share/biluzim pull`.
+
+### Jeito clássico
+
+```bash
+git clone https://github.com/lSaGaT/Biluzin.git && cd Biluzin
+sudo ./install.sh          # root: /usr/local/bin | sem root: ~/.local/bin
 ```
 
 Sem root? Instala em `~/.local/bin`:

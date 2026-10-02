@@ -4,7 +4,8 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# realpath resolve o symlink criado pelo install.sh (o pacote vive no clone)
+sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)))
 
 from biluzim.cli import main  # noqa: E402
 

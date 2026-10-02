@@ -1,7 +1,22 @@
 #!/usr/bin/env bash
 # biluzim - launcher para Linux/Kali
-# Instala com: sudo ./install.sh   (ou: ln -sf "$PWD/bin/biluzim" ~/.local/bin/biluzim)
+# Instale com: curl -sSL https://raw.githubusercontent.com/lSaGaT/Biluzin/main/install.sh | bash
 set -euo pipefail
-HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+# resolve o symlink criado pelo install.sh (o pacote vive no clone)
+SELF="${BASH_SOURCE[0]}"
+while [ -L "$SELF" ]; do
+    TARGET="$(readlink "$SELF")"
+    case "$TARGET" in
+        /*) SELF="$TARGET" ;;
+        *) SELF="$(cd "$(dirname "$SELF")" && pwd)/$TARGET" ;;
+    esac
+done
+HERE="$(cd "$(dirname "$SELF")/.." && pwd)"
+
 export PYTHONUNBUFFERED=1
-exec python3 "$HERE/biluzim.py" "$@"
+if command -v python3 >/dev/null 2>&1 && \
+   python3 -c 'import sys' 2>/dev/null; then
+    exec python3 "$HERE/biluzim.py" "$@"
+fi
+exec python "$HERE/biluzim.py" "$@"
