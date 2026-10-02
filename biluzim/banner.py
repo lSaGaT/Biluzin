@@ -6,14 +6,13 @@ import sys
 
 from . import __version__
 
-# Mark: "BILUZIM" (12 linhas x 62 colunas)
+# Mark: "BILUZIM" (5 linhas, figlet standard com espacamento)
 WORD = [
-    r"  ____  _ _       _             _ ",
-    r" | __ )(_) |_   _| |__  _ __ __| |",
-    r" |  _ \| | | | | | '_ \| '__/ _` |",
-    r" | |_) | | | |_| | |_) | | | (_| |",
-    r" |____/|_|_|\__, |_.__/|_|  \__,_|",
-    r"            |___/                 ",
+    r" ____    ___   _       _   _   _____   ___   __  __ ",
+    r"| __ )  |_ _| | |     | | | | |__  / |_ _| |  \/  |",
+    r"|  _ \   | |  | |     | | | |   / /   | |  | |\/| |",
+    r"| |_) |  | |  | |___  | |_| |  / /_   | |  | |  | |",
+    r"|____/  |___| |_____|  \___/  /____| |___| |_|  |_|",
 ]
 
 TAGLINE = "Recon passivo + enumeracao ativa   v" + __version__
