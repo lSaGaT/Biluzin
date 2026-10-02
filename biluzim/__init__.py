@@ -10,6 +10,6 @@ Juncao das ideias de dois projetos do lunalully:
 Uso autorizado apenas. Sem dependencias externas: Python 3.9+ puro.
 """
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 __tool__ = "biluzim"
 __license__ = "GPL-3.0-or-later"

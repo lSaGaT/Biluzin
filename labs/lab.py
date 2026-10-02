@@ -111,6 +111,10 @@ class LabHTTP(BaseHTTPRequestHandler):
             return 200, "<ListBucketResult>public</ListBucketResult>".encode()
         if path.startswith("/biluzim-lab-denied"):
             return 403, "<Error>AccessDenied</Error>".encode()
+        if path.startswith("/biluzim-lab-backup"):
+            return 200, "conteudo do backup do lab".encode()
+        if path.startswith("/biluzim-lab-secrets"):
+            return 403, "<Error>AccessDenied</Error>".encode()
         if path.startswith("/biluzim-"):
             return 404, "<Error>NoSuchBucket</Error>".encode()
 

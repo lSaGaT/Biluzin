@@ -249,6 +249,11 @@ def build_parser():
         p.add_argument("listfile", nargs="?", default=None, help="wordlist de buckets (posicional)")
         add_wordlist(p, default=default_wordlist("buckets.txt"))
         p.add_argument("--endpoint", default="", help=ep_help)
+        p.add_argument("-D", "--target", default="", metavar="DOMINIO_OU_MARCA",
+                       help="dominio/marca do alvo: deriva candidatos (marca-backup...) e "
+                            "oculta hits de terceiros; sem isso, emite tudo como antes")
+        p.add_argument("--all-buckets", action="store_true",
+                       help="com -D: emite tambem os hits de terceiros, rotulados [terceiro]")
         add_common_options(p)
 
     # ---- tftp -------------------------------------------------------------

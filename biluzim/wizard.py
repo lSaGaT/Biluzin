@@ -59,6 +59,7 @@ def _stage_cfg(args, http, **over):
         no_sensitive=False, sensitive_list="", no_js=False, no_params=False,
         param_wordlist=default_wordlist("params.txt"), max_param_probes=50,
         out_urls="", scope="host", depth=3, max_pages=200, urls=[],
+        target="", all_buckets=False,
     )
     d.update(over)
     ns = Namespace(**d)
@@ -107,7 +108,7 @@ def run_wizard(args, config):
         usage_error("biluzim wizard: URL base invalida: %r" % base_url)
 
     output = getattr(args, "output", None) or ""
-    if not output:
+    if not output and not args.yes:
         output = _ask("Arquivo consolidado [enter = biluzim_%s.txt]: " % domain)
     output = output or ("biluzim_%s.txt" % domain)
 
@@ -172,7 +173,7 @@ def run_wizard(args, config):
     if args.yes or _ask_yes("Entrar no modo ativo?"):
         _header(log, "TIME 2: MODO ATIVO (fila de enumeracao)")
         queue_in = (getattr(args, "active", "") or "").strip()
-        if not queue_in:
+        if not queue_in and not args.yes:
             queue_in = _ask("Modos [enter = %s | lista por virgula | n]: "
                             % ",".join(ACTIVE_DEFAULT), "")
         if queue_in.lower() in NO_ANSWERS:
@@ -223,7 +224,8 @@ def run_wizard(args, config):
                                wordlist=default_wordlist("vhosts.txt"))
                 f, e = run_vhost_mode(c, log, emitter)
             elif mode in ("s3", "gcs"):
-                c = _stage_cfg(args, http, wordlist=default_wordlist("buckets.txt"))
+                c = _stage_cfg(args, http, wordlist=default_wordlist("buckets.txt"),
+                               target=domain)
                 f, e = run_store_mode(c, log, emitter, mode)
             elif mode == "tftp":
                 c = _stage_cfg(args, http, url=domain,

@@ -6,7 +6,7 @@
 |  _ \   | |  | |     | | | |   / /   | |  | |\/| |
 | |_) |  | |  | |___  | |_| |  / /_   | |  | |  | |
 |____/  |___| |_____|  \___/  /____| |___| |_|  |_|
-Recon passivo + enumeracao ativa   v0.3.0
+Recon passivo + enumeracao ativa   v0.3.1
 ```
 
 Biluzim é uma ferramenta de reconhecimento para terminal com três times: o passivo (subdomínios via fontes OSINT), o ativo (dir, dns, vhost, fuzz, s3/gcs, tftp) e o explorador (crawler que vasculha o site por dentro):
@@ -227,13 +227,22 @@ biluzim fuzz alvo.com payloads.txt -H "X-Token: FUZZ"
 ### `s3` / `gcs` — buckets (read-only)
 
 ```bash
-biluzim s3  -w buckets.txt
-biluzim gcs -w buckets.txt
+biluzim s3  -w buckets.txt -D alvo.com.br
+biluzim gcs -w buckets.txt -D alvo.com.br
 biluzim s3  -w buckets.txt --endpoint "http://%s.minha-s3-compativel/"
 ```
 
 - Só status probe: `200 = público`, `403 = existe (negado)`,
   `404 = ausente`. Nunca lê conteúdo, nunca escreve.
+- **Namespace global = cuidado com falso positivo**: nome de bucket é
+  único na AWS/GCP inteira, então hit em nome genérico (`backup`,
+  `videos`) quase sempre é bucket de TERCEIRO. Informe o alvo com
+  `-D/--target` (o wizard passa o domínio sozinho) para:
+  derivar candidatos da marca (`alvo-backup`, `alvo-exports`,
+  `backup-alvo`...), classificar cada hit (`target` x `third_party`) e
+  **ocultar os de terceiro** (contados no resumo; `--all-buckets` os
+  emite rotulados `[terceiro]`). Sem `-D`, emite tudo como antes.
+  O wizard sempre roda s3/gcs com o domínio informado.
 
 ### `tftp` — arquivos via TFTP
 
