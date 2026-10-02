@@ -337,6 +337,21 @@ biluzim/
     ├── store_mode.py   s3/gcs por status
     ├── tftp_mode.py    RRQ/UDP com retry
     └── bridge.py       ponte passivo->ativo (--resolve/--probe)
+
+```
+## Créditos
+
+A Biluzim não inventou a roda, ela portou duas. O design de flags, filtros,
+soft-404/wildcard e disciplina de saída é herdado destes dois projetos:
+
+- **[lunatic](https://github.com/lunalully/lunatic)** — de [lunalully](https://github.com/lunalully).
+  Recon passivo de subdomínios em Go: só fontes OSINT de terceiros, nunca toca no alvo.
+  É a origem do módulo `passive/`. Licença MIT.
+
+- **[koffuster](https://github.com/lunalully/koffuster)** — também do lunalully.
+  Enumeração ativa em KOF: um binário, seis modos, zero exploração.
+  É a origem do módulo `active/`. Licença GPL-3.0.
+
 ```
 
 Fidelidade aos originais: mesmas flags, mesma semântica de filtros, mesma
