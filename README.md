@@ -6,10 +6,10 @@
 |  _ \   | |  | |     | | | |   / /   | |  | |\/| |
 | |_) |  | |  | |___  | |_| |  / /_   | |  | |  | |
 |____/  |___| |_____|  \___/  /____| |___| |_|  |_|
-Recon passivo + enumeracao ativa   v0.1.0
+Recon passivo + enumeracao ativa   v0.2.0
 ```
 
-Biluzim é uma ferramenta de reconhecimento para terminal:
+Biluzim é uma ferramenta de reconhecimento para terminal com três times: o passivo (subdomínios via fontes OSINT), o ativo (dir, dns, vhost, fuzz, s3/gcs, tftp) e o explorador (crawler que vasculha o site por dentro):
 
 Escrita em **Python 3 puro (só stdlib)** — nada de `pip install` no Kali.
 Todo achado é reportado como **achado de enumeração**, nunca como
@@ -61,6 +61,7 @@ PASSIVOS (nunca tocam no alvo)
   recon                subdominios via fontes OSINT (crt.sh, wayback, OTX...)
 
 ATIVOS (sondam o alvo, so reportam, nao exploram)
+  explore              crawler profundo: links, JS, leaks, forms, params
   dir                  forca bruta de diretorios/arquivos
   dns                  forca bruta de subdominios via DoH
   vhost                enumeracao de virtual hosts (header Host)
@@ -106,9 +107,33 @@ www.exemplo.com  [93.184.216.34]
 Depois disso, aprofunde no que estiver vivo com os modos ativos:
 
 ```bash
+biluzim explore -u https://www.exemplo.com            # vasculha o site por dentro
 biluzim dir -u https://www.exemplo.com -w /usr/share/wordlists/dirb/common.txt
 biluzim dns -d exemplo.com -w /usr/share/wordlists/seclists/Discovery/DNS/subdomains-top1million-5000.txt
 ```
+
+### `explore` — crawler profundo
+
+```bash
+biluzim explore -u https://alvo.com
+biluzim explore -u https://alvo.com -d 5 --max-pages 500 -t 16
+biluzim explore -u https://alvo.com --scope subdomains      # segue para *.alvo.com
+biluzim explore -u https://alvo.com --out-urls urls.txt     # alimenta dir/fuzz depois
+```
+
+O que ele vasculha e reporta:
+
+- **crawler** por profundidade (`-d`), com orcamento de paginas (`--max-pages`), so em-escopo;
+- **robots.txt** e **sitemap.xml** viram mapa: `Disallow` e `<loc>` entram na fila (e sao reportados);
+- **JS**: endpoints embutidos e **segredos** — chaves AWS (`AKIA...`), Google (`AIza...`), JWT, token Slack, private key e genericos `api_key/secret/token/password` (valor sempre mascarado);
+- **vazamentos classicos** com assinatura de conteudo e filtro de soft-404: `/.git/HEAD`, `/.env`, `/.svn`, `/.DS_Store`, `dump.sql`, `backup.zip`, `server-status`, `actuator`... (lista extra via `--sensitive-list`);
+- **directory listing** aberto ("Index of /");
+- **formularios**: action, metodo e campos — enumera, **nunca submete**;
+- **e-mails e comentarios** no HTML (comentario de dev e ouro);
+- **fingerprint**: `Server`, `X-Powered-By`, `generator`, cookies;
+- **mineracao de parametros**: canario aleatorio em ~100 nomes classicos; reporta parametro **refletido**, que **muda status** ou que **muda o corpo** — so sinal, sem payload de ataque.
+
+Tudo e GET e reportado; a Biluzim nao submete formulario e nao injeta payload destrutivo. Os achados alimentam o proximo passo (`fuzz`, `dir` ou o exploit runner de sua preferencia).
 
 ### `dir` — força bruta de diretórios
 
@@ -245,7 +270,7 @@ linha (`--show-sources` inclui a fonte de cada subdomínio).
 ## Laboratório local (teste sem tocar em ninguém)
 
 O pacote traz um alvo de teste que emula soft-404, vhosts, DoH com
-wildcard, buckets e um servidor TFTP:
+wildcard, buckets, TFTP e um mini-site para o modo explore:
 
 ```bash
 python3 labs/lab.py          # http://127.0.0.1:8000, doh://:8005, tftp://:6969
@@ -254,6 +279,7 @@ python3 labs/lab.py          # http://127.0.0.1:8000, doh://:8005, tftp://:6969
 Em outro terminal:
 
 ```bash
+biluzim explore -u http://127.0.0.1:8000 -d 3 --max-pages 30
 biluzim dir -u http://127.0.0.1:8000 -w biluzim/wordlists/directories.txt
 biluzim dns -d lab.local -w biluzim/wordlists/subdomains.txt --resolver http://127.0.0.1:8005/resolve
 biluzim vhost -u http://127.0.0.1:8000 -D lab.local -w biluzim/wordlists/vhosts.txt
@@ -277,6 +303,8 @@ biluzim/
 │   ├── sources.py      ~26 fontes OSINT (endpoints/parse copiados do original)
 │   └── runner.py       paralelismo, rate-limit por REQUISIÇÃO, fase 2 (internetdb)
 └── active/             porte do koffuster (KOF -> Python)
+    ├── explore_mode.py crawler profundo: links, robots/sitemap, JS, leaks,
+    │                   listings, forms, e-mails, comentarios, params
     ├── classify.py     baseline soft-404 + filtros (-s/-b/--exclude-length)
     ├── dir_mode.py     3 fases por batch como no original
     ├── dns_mode.py     DoH JSON + detecção de wildcard + resolve_names (ponte)

@@ -29,6 +29,34 @@ KNOWN_PATHS = {
     "/backup.zip": ("PK\x03\x04 fake-zip", 200),
     "/secret": ("top secret area", 403),
     "/old": ("moved permanently", 301),
+    # ===== lab do modo explore =====
+    "/": ("<html><head><title>Biluzim Lab Home</title></head><body>"
+          "<a href='/admin'>admin</a> <a href='/sobre'>sobre</a>"
+          " <a href='/static/app.js'>app js</a> <a href='/blog/post1'>post</a>"
+          " <a href='/files/'>arquivos</a> <a href='/busca'>busca</a>"
+          " <a href='https://externo-fora-do-escopo.com/x'>fora</a>"
+          " <form action='/login' method='post'><input name='user'><input name='pass'></form>"
+          " </body></html>", 200),
+    "/sobre": ("<html><title>Sobre</title><body>"
+               "<a href='/contato'>contato</a><a href='/'>home</a></body></html>", 200),
+    "/contato": ("<html><title>Contato</title><body>email: contato@lab.local "
+                 "<!-- TODO: remover senha de teste antes do deploy --></body></html>", 200),
+    "/blog/post1": ("<html><title>Post 1</title><body>"
+                    "<a href='/blog/post2'>proximo</a><a href='/admin'>admin</a>"
+                    "</body></html>", 200),
+    "/blog/post2": ("<html><title>Post 2</title><body>fim</body></html>", 200),
+    "/static/app.js": ("var api = '/api/v2/users';\n"
+                       "var cfg = 'https://cdn.lab.local/lib.js';\n"
+                       "var key = 'AKIAIOSFODNN7EXAMPLE';\n"
+                       "var jwt = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.abc123def456ghi789';\n"
+                       "fetch('/api/v2/orders?user=')", 200),
+    "/api/v2/users": ('[{"id":1,"login":"adm"}]', 200),
+    "/secret-area": ("area secreta via robots", 200),
+    "/files/": ("<html><head><title>Index of /files/</title></head><body>"
+                "<a href='/files/a.txt'>a.txt</a><a href='/files/backup.zip'>backup.zip</a>"
+                "</body></html>", 200),
+    "/files/a.txt": ("conteudo solto", 200),
+    "/busca": (None, 200),  # corpo dinamico: reflete 'q' e 'debug' (ver _route)
 }
 
 KNOWN_VHOSTS = {
@@ -67,6 +95,11 @@ class LabHTTP(BaseHTTPRequestHandler):
         host = self._host()
         path = self.path.split("?")[0]
 
+        # arquivos especiais do lab (caçados pelo modo explore)
+        special = self._special()
+        if special:
+            return special
+
         # vhost: so a raiz, so para hosts "virtuais"
         if host in KNOWN_VHOSTS and path == "/":
             return 200, KNOWN_VHOSTS[host].encode()
@@ -102,15 +135,40 @@ class LabHTTP(BaseHTTPRequestHandler):
         # dir: caminhos conhecidos tem corpo proprio
         if path in KNOWN_PATHS:
             msg, code = KNOWN_PATHS[path]
+            if path == "/busca":
+                from urllib.parse import parse_qs, unquote
+                qs = parse_qs(self.path.split("?", 1)[1] if "?" in self.path else "")
+                if "debug" in qs and qs["debug"][0]:
+                    return 500, b"debug mode crashed"
+                q = unquote(qs.get("q", [""])[0])
+                return 200, ("resultado da busca por %s" % q).encode()
             return code, msg.encode()
         return 200, SOFT_BODY  # soft-404: 200 com corpo fixo
 
     def do_GET(self):
         code, body = self._route()
-        self._send(code, body)
+        ctype = "application/javascript" if self.path.split("?")[0].endswith(".js") else "text/html"
+        self._send(code, body, ctype)
 
     do_HEAD = do_GET
     do_POST = do_GET
+
+    # arquivos especiais do lab (explorados pelo modo explore)
+    def _special(self):
+        path = self.path.split("?")[0]
+        if path == "/robots.txt":
+            return 200, ("User-agent: *\nDisallow: /secret-area\n"
+                         "Sitemap: http://127.0.0.1:8000/sitemap.xml\n").encode()
+        if path == "/sitemap.xml":
+            return 200, ('<?xml version="1.0"?><urlset>'
+                         "<url><loc>http://127.0.0.1:8000/sobre</loc></url>"
+                         "<url><loc>http://127.0.0.1:8000/blog/post1</loc></url>"
+                         "</urlset>").encode()
+        if path == "/.git/HEAD":
+            return 200, b"ref: refs/heads/main\n"
+        if path == "/.env":
+            return 200, b"DB_HOST=localhost\nDB_PASSWORD=supersecret123\n"
+        return None
 
 
 class LabDoH(BaseHTTPRequestHandler):

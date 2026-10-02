@@ -23,6 +23,7 @@ import json
 import os
 import signal
 import sys
+from urllib.parse import urlparse
 
 from . import __version__
 from .banner import Palette, colors_enabled, print_banner
@@ -240,6 +241,35 @@ def build_parser():
     p.add_argument("--port", type=int, default=69, help="porta TFTP (padrao: 69)")
     add_common_options(p)
 
+    # ---- explore ----------------------------------------------------------
+    p = sub.add_parser("explore", aliases=["explorer", "deep"],
+                       help="crawler profundo: links, JS, leaks, listings, forms, params")
+    p.add_argument("target", nargs="?", default=None, help="URL semente (posicional)")
+    p.add_argument("-u", "--url", action="append", default=[], metavar="URL",
+                   help="URL semente (replicavel)")
+    p.add_argument("--seeds-file", default="", metavar="ARQUIVO",
+                   help="arquivo com URLs sementes (uma por linha)")
+    p.add_argument("-d", "--depth", type=int, default=3,
+                   help="profundidade do rastreio a partir da semente (padrao: 3)")
+    p.add_argument("--max-pages", type=int, default=200,
+                   help="orcamento de paginas baixadas (padrao: 200)")
+    p.add_argument("--scope", choices=["host", "subdomains"], default="host",
+                   help="host: so o host da semente; subdomains: todo *.dominio (padrao: host)")
+    p.add_argument("--no-sensitive", action="store_true",
+                   help="pula a cacada de arquivos classicos vazados")
+    p.add_argument("--sensitive-list", default="", metavar="ARQUIVO",
+                   help="paths extras para cacar vazamentos (uma rota por linha)")
+    p.add_argument("--no-js", action="store_true", help="pula extracao de endpoints/segredos de JS")
+    p.add_argument("--no-params", action="store_true",
+                   help="pula mineracao de parametros (sondagem GET com canario)")
+    p.add_argument("--param-wordlist", default=default_wordlist("params.txt"),
+                   help="wordlist de nomes de parametro")
+    p.add_argument("--max-param-probes", type=int, default=50,
+                   help="maximo de URLs testadas na mineracao de parametros (padrao: 50)")
+    p.add_argument("--out-urls", default="", metavar="ARQUIVO",
+                   help="grava todas as URLs descobertas (alimenta dir/fuzz)")
+    add_common_options(p)
+
     return ap
 
 
@@ -454,12 +484,43 @@ def cmd_tftp(args, config):
     return 1 if (found == 0 and errors > 0) else 0
 
 
+def cmd_explore(args, config):
+    from .active.explore_mode import Explorer
+    from .active.classify import ensure_scheme
+
+    ctx = Ctx(args, "explore")
+    print_banner(ctx.pal, args.quiet, args.format)
+
+    seeds = [ensure_scheme(u) for u in (args.url or []) if u.strip()]
+    if getattr(args, "target", None):
+        seeds.insert(0, ensure_scheme(args.target))
+    if args.seeds_file:
+        with open(args.seeds_file, "r", encoding="utf-8", errors="replace") as fh:
+            for line in fh:
+                line = line.strip()
+                if line and not line.startswith("#"):
+                    seeds.append(ensure_scheme(line))
+    seeds = list(dict.fromkeys(seeds))
+    if not seeds:
+        usage_error("biluzim explore: faltou a URL semente (use -u <url> ou --seeds-file)")
+    bad = [s for s in seeds if urlparse(s).scheme not in ("http", "https")]
+    if bad:
+        usage_error("biluzim explore: semente invalida: %s" % ", ".join(bad))
+    args.urls = seeds
+
+    explorer = Explorer(ctx, ctx.log, ctx.emitter)
+    explorer.run()
+    ctx.emitter.close()
+    return 1 if explorer.found == 0 and explorer.errors > 0 else 0
+
+
 HANDLERS = {
     "recon": cmd_recon, "passive": cmd_recon, "osint": cmd_recon,
     "dir": cmd_dir, "dns": cmd_dns, "vhost": cmd_vhost, "fuzz": cmd_fuzz,
     "s3": lambda a, c: cmd_store(a, c, "s3"),
     "gcs": lambda a, c: cmd_store(a, c, "gcs"),
     "tftp": cmd_tftp,
+    "explore": cmd_explore, "explorer": cmd_explore, "deep": cmd_explore,
 }
 
 
