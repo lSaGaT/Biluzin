@@ -34,6 +34,8 @@ def run_dir_mode(cfg, log, emitter):
     log.info("dir: %d candidatos, alvo %s" % (len(words), cfg.url))
 
     baseline = _build(cfg, log)
+    cfg.stage_info = {"baseline": {"soft_detected": baseline.soft_detected,
+                                    "status": baseline.status, "length": baseline.length}}
 
     found = errors = 0
     total = len(words)

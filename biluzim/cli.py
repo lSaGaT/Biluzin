@@ -171,6 +171,7 @@ def build_parser():
                    help="orcamento de paginas do explore (padrao: 200)")
     p.add_argument("--config", default=None, metavar="ARQUIVO", help="config JSON de credenciais")
     add_common_options(p)
+    p.set_defaults(format="jsonl")  # wizard nasce para consumo por agente/SDK
 
     # ---- recon (passivo, lunatic) ---------------------------------------
     p = sub.add_parser("recon", aliases=["passive", "osint"],
@@ -560,7 +561,7 @@ def main(argv=None):
             args = Namespace(
                 domain="", url="", yes=False, active="", no_explore=False,
                 sources="", all=False, max_pages=10, depth=3, scope="host",
-                explore_pages=200, config=None, output=None, format="text",
+                explore_pages=200, config=None, output=None, format="jsonl",
                 threads=8, timeout=10.0, retries=1, user_agent=None,
                 cookie=None, auth=None, proxy=None, quiet=False, verbose=False,
                 color=False, no_color=False, mode="run",

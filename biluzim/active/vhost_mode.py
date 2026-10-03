@@ -39,6 +39,9 @@ def run_vhost_mode(cfg, log, emitter):
     elif not cfg.quiet:
         log.warn("vhost: baseline inconsistente (status/corpo variam entre Hosts aleatorios) "
                  "- comparando por diferenca de tamanho")
+    cfg.stage_info = {"baseline": {"consistent": consistent,
+                                   "status": base_status if consistent else None,
+                                   "length": base_len if consistent else None}}
 
     found = errors = 0
     progress = Progress(log, len(words), "vhost", enabled=not cfg.quiet and len(words) >= 50)

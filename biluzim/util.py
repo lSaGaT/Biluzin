@@ -59,12 +59,16 @@ class Emitter:
     """Recebe resultados de qualquer modo e distribui para stdout/arquivo.
 
     fmt: 'text' (uma linha por resultado) ou 'jsonl' (JSON por linha).
+    Em jsonl, TODOS os registros sao gravados (inclusive registros de
+    controle sem 'line', como o envelope de execucao do wizard).
+    Em text, registros sem 'line' sao contados mas nao impressos.
     """
 
     def __init__(self, fmt="text", output_path=None, show_sources=False):
         self.fmt = fmt
         self.output_path = output_path
         self.show_sources = show_sources
+        self.type_counts = {}
         self._file = None
         self._lock = threading.Lock()
         if output_path:
@@ -72,10 +76,15 @@ class Emitter:
 
     def emit(self, record):
         """record: dict com pelo menos 'type'; em text, usamos record['line']."""
+        rtype = record.get("type", "?")
+        with self._lock:
+            self.type_counts[rtype] = self.type_counts.get(rtype, 0) + 1
         if self.fmt == "jsonl":
             line = json.dumps(record, ensure_ascii=False, sort_keys=False)
         else:
-            line = record.get("line", "")
+            line = record.get("line")
+            if line is None:
+                return  # registro de controle: so existe no jsonl
         with self._lock:
             try:
                 sys.stdout.write(line + "\n")

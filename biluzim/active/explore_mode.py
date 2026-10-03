@@ -185,6 +185,7 @@ class Explorer:
         self.tech_done = set()
         self.found = 0
         self.errors = 0
+        self.pages = 0
         self.param_budget = max(0, getattr(cfg, "max_param_probes", 50)) * 60
         self.out_urls = open(cfg.out_urls, "a", encoding="utf-8") if cfg.out_urls else None
 
@@ -499,6 +500,7 @@ class Explorer:
             next_links = []
             for (url, depth), resp in zip(wave, results):
                 pages += 1
+                self.pages = pages
                 progress.tick()
                 if resp is None:
                     continue

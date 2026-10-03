@@ -6,7 +6,7 @@
 |  _ \   | |  | |     | | | |   / /   | |  | |\/| |
 | |_) |  | |  | |___  | |_| |  / /_   | |  | |  | |
 |____/  |___| |_____|  \___/  /____| |___| |_|  |_|
-Recon passivo + enumeracao ativa   v0.3.1
+Recon passivo + enumeracao ativa   v0.4.0
 ```
 
 Biluzim é uma ferramenta de reconhecimento para terminal com três times: o passivo (subdomínios via fontes OSINT), o ativo (dir, dns, vhost, fuzz, s3/gcs, tftp) e o explorador (crawler que vasculha o site por dentro):
@@ -108,6 +108,18 @@ Respostas podem ser pipeadas (EOF = padrao), entao o wizard tambem e scriptavel:
 s
 s
 ' | biluzim`.
+
+O wizard grava **JSONL por padrao** (`-f text` volta ao texto simples). O arquivo segue o schema `biluzim/1`, feito para consumo por agente/SDK e ecossistemas integrados:
+
+```jsonl
+{"type":"run", "schema":"biluzim/1", "version":"0.4.0", "domain":"alvo.com", "base_url":"...", "started_at":"...", "config":{...}}
+{"type":"stage", "stage":"recon", "attack":"Reconnaissance", "status":"done", "context":{"sources":[{"name":"crtsh","status":"failed","detail":"..."}]}, "summary":{...}}
+{"type":"subdomain", "domain":"alvo.com", "subdomain":"www.alvo.com"}
+{"type":"stage", "stage":"dir", "context":{"baseline":{"soft_detected":true,"status":200,"length":52}}, "summary":{"found":7,"errors":0}}
+{"type":"run_summary", "finished_at":"...", "duration_sec":33.2, "exit":"complete", "counts":{"subdomain":89,"leak":1,"...":0}}
+```
+
+Cada etapa carrega `attack` (tatica ATT&CK da etapa), `config` (o que foi usado, inclusive wordlists), `context` (baseline de soft-404, wildcard, contagens de terceiros ocultados) e `summary`; a cauda `run_summary` fecha com duracao, como a execucao terminou (`complete`/`interrupted`) e contagens por tipo. O `probe` dos alvos vivos inclui `server` e `powered_by` para o agente escolher a proxima ferramenta.
 
 ### `recon` — passivo
 

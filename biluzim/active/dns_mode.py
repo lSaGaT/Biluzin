@@ -74,6 +74,7 @@ def run_dns_mode(cfg, log, emitter):
         log.warn("wildcard detectado, IP=%s (candidatos com esse IP descartados)" % wildcard_ip)
     else:
         log.info("sem wildcard detectado")
+    cfg.stage_info = {"wildcard": {"detected": detected, "ip": wildcard_ip if detected else None}}
 
     found = errors = 0
     progress = Progress(log, len(words), "dns", enabled=not cfg.quiet and len(words) >= 50)

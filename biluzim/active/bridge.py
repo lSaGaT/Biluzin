@@ -32,11 +32,13 @@ def probe_alive(http, names, workers=16, schemes=("https", "http"), timeout_note
                 return {
                     "subdomain": name, "url": url, "status": r.status,
                     "length": len(r.body), "title": title,
+                    "server": r.header("Server") or None,
+                    "powered_by": r.header("X-Powered-By") or None,
                 }
             except Exception:
                 continue
         return {"subdomain": name, "url": None, "status": None,
-                "length": None, "title": ""}
+                "length": None, "title": "", "server": None, "powered_by": None}
 
     with ThreadPoolExecutor(max_workers=max(1, workers)) as pool:
         return list(pool.map(one, names))
@@ -77,5 +79,6 @@ def run_recon_bridge(cfg, log, emitter, names):
             emitter.emit({
                 "type": "probe", "subdomain": r["subdomain"], "url": r["url"],
                 "status": r["status"], "length": r["length"], "title": r["title"],
+                "server": r.get("server"), "powered_by": r.get("powered_by"),
                 "line": line,
             })

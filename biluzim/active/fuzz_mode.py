@@ -46,6 +46,7 @@ def run_fuzz_mode(cfg, log, emitter):
         log.info("fuzz baseline: status=%d, corpo=%d bytes (payload de controle)" % (b_status, b_len))
     except Exception as e:
         log.warn("fuzz: baseline falhou (%s) - reportando tudo que nao for erro" % str(e)[:80])
+    cfg.stage_info = {"baseline": {"status": b_status, "length": b_len}}
 
     found = errors = 0
     progress = Progress(log, len(words), "fuzz", enabled=not cfg.quiet and len(words) >= 50)

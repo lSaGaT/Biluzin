@@ -129,6 +129,7 @@ def run_store_mode(cfg, log, emitter, mode_name):
             })
 
     progress.finish()
+    cfg.stage_info = {"target": brand, "third_party_hidden": third_party}
     if brand:
         log.info("%s: %d com vinculo ao alvo; %d de terceiros ocultados%s; %d erros"
                  % (mode_name, found, third_party,
